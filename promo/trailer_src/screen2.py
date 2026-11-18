@@ -8,7 +8,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 SW, SH, FPS = 1728, 1080, 30
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUTD = os.path.join(HERE, "screen2"); os.makedirs(OUTD, exist_ok=True)
+OUTD = os.path.join(HERE, "screen3"); os.makedirs(OUTD, exist_ok=True)
 FD = os.path.join(HERE, "fonts")
 @lru_cache(maxsize=None)
 def F(n, s): return ImageFont.truetype(os.path.join(FD, n), s)
@@ -147,7 +147,7 @@ _rp = np.random.default_rng(3)
 PARTS = _rp.random((90, 4)).astype(np.float32)
 
 # ---------------- trailer source ----------------
-VID = os.path.join(HERE, "trailer_music_noaudio.mp4")
+VID = os.path.join(HERE, "trailer_cars_noaudio.mp4")
 _cap = {}
 def trailer_frame(i):
     if "c" not in _cap:
@@ -368,5 +368,5 @@ if __name__ == "__main__":
         res = {}
         for lst in p.imap(run, chunks):
             res.update(dict(lst))
-    json.dump([res[k] for k in sorted(res)], open(os.path.join(HERE, "screen2_colors.json"), "w"))
+    json.dump([res[k] for k in sorted(res)], open(os.path.join(HERE, "screen3_colors.json"), "w"))
     print("done", len(res))
