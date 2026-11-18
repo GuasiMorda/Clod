@@ -145,8 +145,8 @@ music *= np.minimum(1, (DUR - tt) / 0.4)  # fade tail
 # ---- voice ----
 def load(path, tempo):
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", path, "-af",
-                          f"atempo={tempo:.3f},highpass=f=120,acompressor=threshold=-18dB:ratio=4:makeup=4,"
-                          "aecho=0.8:0.5:40:0.18", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
+                          f"atempo={tempo:.3f},highpass=f=90,equalizer=f=3000:t=q:w=1.2:g=4,equalizer=f=200:t=q:w=1:g=2,"
+                          "acompressor=threshold=-20dB:ratio=3:attack=5:release=80:makeup=3", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"],
                          capture_output=True, check=True).stdout
     return np.frombuffer(raw, dtype=np.float32).astype(np.float64)
 
@@ -157,15 +157,18 @@ def dur(path):
 slots = [(0.15, 2.85), (3.1, 6.85), (7.15, 10.85), (11.1, 15.6), (16.15, 19.6)]
 voice = np.zeros(N)
 for i, (a, b) in enumerate(slots, 1):
-    p = f"vo/w{i}.wav"
+    p = f"vo3/t{i}.wav"
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", f"vo3/w{i}.wav", "-af",
+                    "silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse", p], check=True)
     tempo = max(1.0, dur(p) / (b - a))
+    print(i, round(dur(p),2), round(tempo,2))
     v = load(p, tempo)
     v = v / (np.abs(v).max() + 1e-9) * 0.9
     add(voice, v, a)
 
 venv = np.convolve(np.abs(voice), np.ones(int(0.08 * SR)) / int(0.08 * SR), mode="same")
-duckv = 1 - 0.45 * np.clip(venv * 8, 0, 1)
-mix = music * duckv * 0.8 + voice * 1.0
+duckv = 1 - 0.6 * np.clip(venv * 8, 0, 1)
+mix = music * duckv * 0.7 + voice * 1.15
 mix = np.tanh(mix * 1.1)
 mix = mix / np.abs(mix).max() * 0.95
 st = np.stack([mix, mix], axis=1)
